@@ -18,31 +18,60 @@ export const MemoryProvider = ({ children }) => {
 
   const PASSWORD = 'SriCh'
   const MEMORIES_KEY = 'chatbot_memories'
+  const userId = getOrCreateUserId()
 
-  // Load memories from localStorage on component mount
+  // Load memories from backend on mount
   useEffect(() => {
-    const savedMemories = localStorage.getItem(MEMORIES_KEY)
-    if (savedMemories) {
+    const fetchMemories = async () => {
       try {
-        setMemories(JSON.parse(savedMemories))
-      } catch (error) {
-        console.error('Error loading memories:', error)
+        const res = await fetch(`/api/getMemories?userId=${userId}`)
+        if (res.ok) {
+          const data = await res.json()
+          setMemories(data.map(m => ({
+            id: m._id || Date.now() + Math.random(),
+            content: m.content,
+            timestamp: m.timestamp
+          })))
+        } else {
+          // fallback to localStorage
+          const savedMemories = localStorage.getItem(MEMORIES_KEY)
+          if (savedMemories) {
+            setMemories(JSON.parse(savedMemories))
+          }
+        }
+      } catch {
+        // fallback to localStorage
+        const savedMemories = localStorage.getItem(MEMORIES_KEY)
+        if (savedMemories) {
+          setMemories(JSON.parse(savedMemories))
+        }
       }
     }
-  }, [])
+    fetchMemories()
+  }, [userId])
 
   // Save memories to localStorage whenever memories change
   useEffect(() => {
     localStorage.setItem(MEMORIES_KEY, JSON.stringify(memories))
   }, [memories])
 
-  const addMemory = (content) => {
+  const addMemory = async (content) => {
     const newMemory = {
       id: Date.now(),
       content,
       timestamp: new Date().toISOString()
     }
     setMemories(prev => [...prev, newMemory])
+    // Save to backend
+    try {
+      await fetch('/api/saveMemory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, content })
+      })
+    } catch {
+      // ignore errors, fallback to localStorage
+    }
     return newMemory
   }
 
@@ -96,4 +125,13 @@ export const MemoryProvider = ({ children }) => {
       {children}
     </MemoryContext.Provider>
   )
+}
+
+const getOrCreateUserId = () => {
+  let userId = localStorage.getItem('chatbot_user_id')
+  if (!userId) {
+    userId = 'user-' + Math.random().toString(36).substr(2, 9)
+    localStorage.setItem('chatbot_user_id', userId)
+  }
+  return userId
 } 

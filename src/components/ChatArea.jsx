@@ -56,6 +56,36 @@ const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => 
         return
       }
 
+      // Intercept questions and answer from memory if possible
+      const questionMatch = inputValue.match(/^what\s+is\s+(my|the)\s+(.+?)\??$/i)
+      if (questionMatch) {
+        const subject = questionMatch[2].toLowerCase().replace(/\?$/, '').trim()
+        // Try to find a memory that matches the subject
+        // e.g., memory: 'my favorite color is blue', question: 'What is my favorite color?'
+        const foundMemory = memories.find(m => {
+          // Extract the part after 'my' or 'the' and before 'is'
+          const memMatch = m.content.match(/^(my|the)\s+(.+?)\s+is\s+(.+)$/i)
+          if (memMatch) {
+            const memSubject = memMatch[2].toLowerCase().trim()
+            return memSubject === subject
+          }
+          return false
+        })
+        if (foundMemory) {
+          const memMatch = foundMemory.content.match(/^(my|the)\s+(.+?)\s+is\s+(.+)$/i)
+          const value = memMatch ? memMatch[3].trim() : ''
+          const aiMessage = {
+            id: Date.now() + 1,
+            type: 'ai',
+            content: value ? `Your ${subject} is ${value}.` : "I don't know.",
+            timestamp: new Date()
+          }
+          addMessage(aiMessage)
+          setIsLoading(false)
+          return
+        }
+      }
+
       const response = await sendToGemini(userMessage, apiKey, memories)
       const aiMessage = {
         id: Date.now() + 1,
