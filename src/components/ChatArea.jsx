@@ -129,11 +129,8 @@ const sendToGemini = async (message, apiKey) => {
   const genAI = new GoogleGenerativeAI(apiKey)
   
   let model
-  if (message.image) {
-    model = genAI.getGenerativeModel({ model: "gemini-pro-vision" })
-  } else {
-    model = genAI.getGenerativeModel({ model: "gemini-pro" })
-  }
+  // Use gemini-1.5-flash for both text and image (if supported)
+  model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
   let result
   if (message.image) {
