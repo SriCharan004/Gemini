@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-white text-gray-900;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .chat-message {
+    @apply p-4 border-b border-gray-200;
+  }
+  
+  .user-message {
+    @apply bg-blue-50;
+  }
+  
+  .ai-message {
+    @apply bg-white;
+  }
+  
+  .input-area {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4;
+  }
+  
+  .sidebar {
+    @apply w-64 bg-gray-50 border-r border-gray-200 h-screen overflow-y-auto;
+  }
+} 
