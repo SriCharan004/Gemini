@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect } from 'react'
 import MessageInput from './MessageInput'
 import Message from './Message'
 import { Send, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { useMemory } from '../contexts/MemoryContext'
 
 const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => {
   const messagesEndRef = useRef(null)
   const [inputValue, setInputValue] = useState('')
   const [selectedImage, setSelectedImage] = useState(null)
+  const { memories, requestMemoryAccess, isAuthenticated } = useMemory()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -37,7 +39,24 @@ const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => 
     setIsLoading(true)
 
     try {
-      const response = await sendToGemini(userMessage, apiKey)
+      // Check if user wants to remember something
+      const rememberMatch = inputValue.toLowerCase().match(/remember\s+(.+)/)
+      if (rememberMatch) {
+        const contentToRemember = rememberMatch[1].trim()
+        requestMemoryAccess(contentToRemember)
+        
+        const aiMessage = {
+          id: Date.now() + 1,
+          type: 'ai',
+          content: `I'll remember: "${contentToRemember}". Please enter the password to confirm.`,
+          timestamp: new Date()
+        }
+        addMessage(aiMessage)
+        setIsLoading(false)
+        return
+      }
+
+      const response = await sendToGemini(userMessage, apiKey, memories)
       const aiMessage = {
         id: Date.now() + 1,
         type: 'ai',
@@ -72,7 +91,9 @@ const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => 
       {/* Header */}
       <div className="border-b border-gray-200 p-4">
         <h2 className="text-lg font-semibold text-gray-900">Gemini Chat</h2>
-        <p className="text-sm text-gray-600">Ask me anything or upload an image</p>
+        <p className="text-sm text-gray-600">
+          Ask me anything, upload an image, or say "remember [something]" to store information
+        </p>
       </div>
 
       {/* Messages Area */}
@@ -85,8 +106,7 @@ const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => 
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Gemini Clone</h3>
               <p className="text-gray-600 max-w-md">
-                Start a conversation or upload an image to get started. I can help you with text analysis, 
-                image understanding, and much more.
+                Start a conversation, upload an image, or use "remember [information]" to store important details securely.
               </p>
             </div>
           </div>
@@ -123,7 +143,7 @@ const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => 
 }
 
 // Function to send message to Gemini API
-const sendToGemini = async (message, apiKey) => {
+const sendToGemini = async (message, apiKey, memories = []) => {
   const { GoogleGenerativeAI } = await import('@google/generative-ai')
   
   const genAI = new GoogleGenerativeAI(apiKey)
@@ -131,6 +151,13 @@ const sendToGemini = async (message, apiKey) => {
   let model
   // Use gemini-1.5-flash for both text and image (if supported)
   model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+
+  // Create context with memories if available
+  let context = message.content
+  if (memories.length > 0) {
+    const memoryContext = memories.map(m => `- ${m.content}`).join('\n')
+    context = `Previous memories:\n${memoryContext}\n\nCurrent message: ${message.content}`
+  }
 
   let result
   if (message.image) {
@@ -145,9 +172,9 @@ const sendToGemini = async (message, apiKey) => {
       }
     }
     
-    result = await model.generateContent([message.content, imagePart])
+    result = await model.generateContent([context, imagePart])
   } else {
-    result = await model.generateContent(message.content)
+    result = await model.generateContent(context)
   }
 
   const response = await result.response

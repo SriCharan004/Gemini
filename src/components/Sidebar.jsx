@@ -1,7 +1,17 @@
 import React from 'react'
 import { Plus, Settings, Key, Sparkles } from 'lucide-react'
+import MemoryManager from './MemoryManager'
 
-const Sidebar = ({ onNewChat, onApiKeyClick, hasApiKey }) => {
+const Sidebar = ({ 
+  onNewChat, 
+  onApiKeyClick, 
+  hasApiKey,
+  memories,
+  onRemoveMemory,
+  onClearAllMemories,
+  isAuthenticated,
+  onLogout
+}) => {
   return (
     <div className="sidebar">
       <div className="p-4">
@@ -36,6 +46,14 @@ const Sidebar = ({ onNewChat, onApiKeyClick, hasApiKey }) => {
             )}
           </button>
         </div>
+
+        <MemoryManager
+          memories={memories}
+          onRemoveMemory={onRemoveMemory}
+          onClearAll={onClearAllMemories}
+          isAuthenticated={isAuthenticated}
+          onLogout={onLogout}
+        />
 
         <div className="mt-8 px-3">
           <p className="text-xs text-gray-500">
