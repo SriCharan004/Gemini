@@ -2,13 +2,11 @@ import React, { useState, useRef, useEffect } from 'react'
 import MessageInput from './MessageInput'
 import Message from './Message'
 import { Send, Image as ImageIcon, Loader2 } from 'lucide-react'
-import { useMemory } from '../contexts/MemoryContext'
 
 const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => {
   const messagesEndRef = useRef(null)
   const [inputValue, setInputValue] = useState('')
   const [selectedImage, setSelectedImage] = useState(null)
-  const { memories, requestMemoryAccess, isAuthenticated } = useMemory()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -39,54 +37,7 @@ const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => 
     setIsLoading(true)
 
     try {
-      // Check if user wants to remember something
-      const rememberMatch = inputValue.toLowerCase().match(/remember\s+(.+)/)
-      if (rememberMatch) {
-        const contentToRemember = rememberMatch[1].trim()
-        requestMemoryAccess(contentToRemember)
-        
-        const aiMessage = {
-          id: Date.now() + 1,
-          type: 'ai',
-          content: `I'll remember: "${contentToRemember}". Please enter the password to confirm.`,
-          timestamp: new Date()
-        }
-        addMessage(aiMessage)
-        setIsLoading(false)
-        return
-      }
-
-      // Intercept questions and answer from memory if possible
-      const questionMatch = inputValue.match(/^what\s+is\s+(my|the)\s+(.+?)\??$/i)
-      if (questionMatch) {
-        const subject = questionMatch[2].toLowerCase().replace(/\?$/, '').trim()
-        // Try to find a memory that matches the subject
-        // e.g., memory: 'my favorite color is blue', question: 'What is my favorite color?'
-        const foundMemory = memories.find(m => {
-          // Extract the part after 'my' or 'the' and before 'is'
-          const memMatch = m.content.match(/^(my|the)\s+(.+?)\s+is\s+(.+)$/i)
-          if (memMatch) {
-            const memSubject = memMatch[2].toLowerCase().trim()
-            return memSubject === subject
-          }
-          return false
-        })
-        if (foundMemory) {
-          const memMatch = foundMemory.content.match(/^(my|the)\s+(.+?)\s+is\s+(.+)$/i)
-          const value = memMatch ? memMatch[3].trim() : ''
-          const aiMessage = {
-            id: Date.now() + 1,
-            type: 'ai',
-            content: value ? `Your ${subject} is ${value}.` : "I don't know.",
-            timestamp: new Date()
-          }
-          addMessage(aiMessage)
-          setIsLoading(false)
-          return
-        }
-      }
-
-      const response = await sendToGemini(userMessage, apiKey, memories)
+      const response = await sendToGemini(userMessage, apiKey)
       const aiMessage = {
         id: Date.now() + 1,
         type: 'ai',
@@ -173,40 +124,26 @@ const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => 
 }
 
 // Function to send message to Gemini API
-const sendToGemini = async (message, apiKey, memories = []) => {
+const sendToGemini = async (message, apiKey) => {
   const { GoogleGenerativeAI } = await import('@google/generative-ai')
-  
   const genAI = new GoogleGenerativeAI(apiKey)
-  
   let model
-  // Use gemini-1.5-flash for both text and image (if supported)
   model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-
-  // Create context with memories if available
   let context = message.content
-  if (memories.length > 0) {
-    const memoryContext = memories.map(m => `- ${m.content}`).join('\n')
-    context = `Previous memories:\n${memoryContext}\n\nCurrent message: ${message.content}`
-  }
-
   let result
   if (message.image) {
-    // Convert base64 image to Uint8Array
     const imageData = message.image.split(',')[1]
     const imageBytes = Uint8Array.from(atob(imageData), c => c.charCodeAt(0))
-    
     const imagePart = {
       inlineData: {
         data: btoa(String.fromCharCode(...imageBytes)),
         mimeType: "image/jpeg"
       }
     }
-    
     result = await model.generateContent([context, imagePart])
   } else {
     result = await model.generateContent(context)
   }
-
   const response = await result.response
   return response.text()
 }

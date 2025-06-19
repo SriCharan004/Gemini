@@ -26,7 +26,7 @@ const PasswordModal = ({ isOpen, onVerify, onClose, error }) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Lock className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Memory Access Required</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Access Required</h3>
           </div>
           <button
             onClick={handleClose}
@@ -37,7 +37,7 @@ const PasswordModal = ({ isOpen, onVerify, onClose, error }) => {
         </div>
 
         <p className="text-gray-600 mb-4">
-          Please enter the password to remember this information.
+          Please enter the password to continue.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -1,16 +1,10 @@
 import React, { useState } from 'react'
 import { Plus, Key, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
-import MemoryManager from './MemoryManager'
 
 const Sidebar = ({ 
   onNewChat, 
   onApiKeyClick, 
-  hasApiKey,
-  memories,
-  onRemoveMemory,
-  onClearAllMemories,
-  isAuthenticated,
-  onLogout
+  hasApiKey
 }) => {
   const [isExpanded, setIsExpanded] = useState(true)
 
@@ -74,15 +68,6 @@ const Sidebar = ({
             )}
           </button>
         </div>
-
-        <MemoryManager
-          memories={memories}
-          onRemoveMemory={onRemoveMemory}
-          onClearAll={onClearAllMemories}
-          isAuthenticated={isAuthenticated}
-          onLogout={onLogout}
-          isSidebarExpanded={isExpanded}
-        />
 
         <div className="mt-8 px-3">
           {isExpanded && (
