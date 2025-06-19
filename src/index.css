@@ -4,29 +4,30 @@
 
 @layer base {
   body {
-    @apply bg-white text-gray-900;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-ivory-50 text-charcoal-900;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    font-family: "Inter", -apple-system, sans-serif;
   }
 }
 
 @layer components {
   .chat-message {
-    @apply p-4 border-b border-gray-200;
+    @apply p-5 border-b border-opacity-10 border-slate-300 transition-all duration-200 ease-in-out;
   }
   
   .user-message {
-    @apply bg-blue-50;
+    @apply bg-cornflower-100/30 backdrop-blur-sm;
   }
   
   .ai-message {
-    @apply bg-white;
+    @apply bg-ivory-50;
   }
   
   .input-area {
-    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4;
+    @apply fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-opacity-20 border-slate-300 p-5 shadow-sm;
   }
   
   .sidebar {
-    @apply w-64 bg-gray-50 border-r border-gray-200 h-screen overflow-y-auto;
+    @apply w-72 bg-ivory-100/60 backdrop-blur-md border-r border-opacity-15 border-slate-300 h-screen overflow-y-auto;
   }
-} 
+}
