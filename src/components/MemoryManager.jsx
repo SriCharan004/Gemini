@@ -30,9 +30,7 @@ const MemoryManager = ({ memories, onRemoveMemory, onClearAll, isAuthenticated, 
       </div>
 
       {!isAuthenticated && (
-        <div className="text-xs text-gray-500 mb-3">
-          Enter password to view memories
-        </div>
+        <></>
       )}
 
       {isAuthenticated && (
