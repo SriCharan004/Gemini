@@ -12,6 +12,16 @@ const Sidebar = ({
   isAuthenticated,
   onLogout
 }) => {
+  const callGemini = async (prompt) => {
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    });
+    const data = await response.json();
+    // handle data
+  };
+
   return (
     <div className="sidebar">
       <div className="p-4">
