@@ -120,7 +120,7 @@ const ChatArea = ({ messages, addMessage, isLoading, setIsLoading, apiKey }) => 
     <div className="flex-1 flex flex-col h-screen">
       {/* Header */}
       <div className="border-b border-gray-200 p-4">
-        <h2 className="text-lg font-semibold text-gray-900">Gemini Chat</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Welcome to AI Chat</h2>
         <p className="text-sm text-gray-600">
           Ask me anything, upload an image, or say "remember [something]" to store information
         </p>
